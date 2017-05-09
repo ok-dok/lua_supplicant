@@ -1,0 +1,69 @@
+#!/bin/sh /etc/rc.common
+#chkconfig:2345 80 50
+#description:supplicant service
+
+START=95
+STOP=95
+
+prog='/usr/share/supplicant/bin/supplicant.lua'
+script_running='/usr/share/supplicant/supplicant.pid'
+
+EXTRA_COMMANDS="status"
+EXTRA_HELP="        status	Display the service's status"
+
+start(){
+	echo -n "starting..."
+	lua ${prog} &> /dev/null & pid=$!
+	echo ${pid} > ${script_running}
+	echo "ok."
+	return 0
+}
+
+stop() {
+	if [ ! -e ${script_running} ]; then
+		return 0
+	fi
+	
+	echo -n "stopping..."
+	local spid=`cat ${script_running}`
+	if [ "${spid}" != "" ]; then
+		kill -9 ${spid} &> /dev/null
+		rm ${script_running}
+	fi
+	echo "ok"
+	return 0
+}
+
+status() {
+    local cur_date=`date "+%Y-%m-%d %H:%M:%S"`
+    if [ -e ${script_running} ]; then
+        echo '{ "status" : "running",  "msg": "Router Time: '$cur_date'"}'
+    else
+        echo '{ "status" : "stopped",  "msg": "Router Time: '$cur_date'"}'
+    fi  
+}
+
+restart() {
+	stop
+	sleep 1
+	start
+}
+
+case "$1" in  
+    start)
+        start  
+        exit 0  
+    ;;  
+    stop) 
+        stop  
+        exit 0  
+    ;;
+    restart)
+		restart
+		exit 0
+	;;
+    status)
+		status
+		exit 0
+	;;  
+esac
