@@ -5,16 +5,19 @@ authc_file="${home}/bin/authc.lua"
 
 install() {
 	echo "Installing..."
-	cp -r ../supplicant /usr/share/
+	if [ ! -e ${home} ]; then
+		mkdir ${home}
+	fi
+	cp ./* ${home}
 	echo "Configuring..."
 	sh ${home}/bin/configure.sh
-	if [ -e ${config_file} ] && [ -e ${authc_file} ]; then
-		echo "Configure success!"
-	else
-		echo "Configure failed! Install canceled."
-		rm -r /usr/share/supplicant
-		return
+	if [ ! -e ${authc_file} ]; then
+		echo "Username or password error！Configure failed, Install canceled."
+		rm -r ${home}
+		return -1
 	fi
+	echo "Configure success!"
+	
 	mv ${home}/install.sh ${home}/install.sh.lock
 	cp ${home}/init.d/supplicant /etc/init.d/
 	chmod +x /etc/init.d/supplicant
@@ -23,6 +26,7 @@ install() {
 	echo "0 7 * * * /etc/init.d/supplicant restart" >> /etc/crontabs/root
 	
 	echo "Install success!"
+	return 0
 }
 
 install

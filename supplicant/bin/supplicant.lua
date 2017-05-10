@@ -638,14 +638,14 @@ function login_test()
 			retry_cnt = retry_cnt + 1
 			login_test()
 		else
-			os.execute("rm "..config_file.." "..authc_file)
+			os.execute("rm "..authc_file)
 		end
 	end
 end
 
 function init()
-	config_file = home.."/bin/conf.lua"
-	authc_file = home.."/bin/authc.lua"
+	config_file = home.."/conf.lua"
+	authc_file = home.."/authc.lua"
 	dofile(config_file)
 	dofile(authc_file)
 	pcall(dofile, config_file)
