@@ -47,6 +47,7 @@ java版本，解决了可以换电脑拨号、电脑开WiFi、Windows/Linux/MacO
 
 `仅支持` 外网认证（BAS认证）
 `不支持` PPPOE、Web认证
+
 内网认证请使用 mentohust
 
 ## 安装说明
@@ -109,10 +110,10 @@ Available commands:
 看到了吧？　执行 /etc/init.d/supplicant --help 就可以看到支持的命令咯！翻译一下：
 - start: 启动拨号上网
 - stop: 停止拨号上网（这不是有病嘛？我拿来不就是上网的，干嘛要停止？）
-- restart:　重启拨号
+- restart: 重启拨号
 - reload: 重新加载配置文件，会重新让你输入用户名、密码，当然还有可能让你输入Mac地址
 - enable: 允许小蝴蝶自动启动
-- disable:　不允许小蝴蝶自动启动
+- disable: 不允许小蝴蝶自动启动
 - status: 查看状态信息，这个使用的最多的，拨号失败了来这里查看状态日志，找找原因！
 
 那么开始上网吧！
