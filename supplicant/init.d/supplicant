@@ -5,17 +5,35 @@
 START=95
 STOP=95
 
-prog='/usr/share/supplicant/bin/supplicant.lua'
-script_running='/usr/share/supplicant/supplicant.pid'
+home="/usr/share/supplicant"
+config_file="${home}/bin/conf.lua"
+authc_file="${home}/bin/authc.lua"
+prog="${home}/bin/supplicant.lua"
+script_running="${home}/supplicant.pid"
+info_log="${home}/info.log"
+error_log="${home}/error.log"
 
 EXTRA_COMMANDS="status"
 EXTRA_HELP="        status	Display the service's status"
 
 start(){
 	echo -n "starting..."
-	lua ${prog} &> /dev/null & pid=$!
+	lua ${prog} 1> /dev/null 2> ${home}/error.log & pid=$!
 	echo ${pid} > ${script_running}
-	echo "ok."
+
+	local info=`cat ${info_log} 2> /dev/null`
+	local error=`cat ${error_log} 2> /dev/null`
+
+	if [ "${pid}" != "" ]; then
+		kill -0 ${pid} &> /dev/null
+		if [ "$?" == "0" ]; then
+			echo "ok."
+			echo "Use command '/etc/init.d/supplicant status' to see status."
+			return 0
+		fi
+	fi
+	echo "failed!"	
+	echo "${info}\n${error}"
 	return 0
 }
 
@@ -36,11 +54,83 @@ stop() {
 
 status() {
     local cur_date=`date "+%Y-%m-%d %H:%M:%S"`
+    local running=-1
     if [ -e ${script_running} ]; then
-        echo '{ "status" : "running",  "msg": "Router Time: '$cur_date'"}'
-    else
-        echo '{ "status" : "stopped",  "msg": "Router Time: '$cur_date'"}'
-    fi  
+		local spid=`cat ${script_running}`
+		if [ "${spid}" != "" ]; then
+			kill -0 ${spid} &> /dev/null
+			if [ "$?" == "0" ]; then
+				running=0
+			fi
+		fi
+	fi
+	if [ ! -e ${info_log} ]; then
+		echo -n > ${info_log}
+	fi
+	cp ${info_log} ${info_log}.color
+	sed -i 's/\[error\]/\\033[31m[error]\\033[0m/' ${info_log}.color
+	sed -i 's/\[info\]/\\033[32m[info]\\033[0m/' ${info_log}.color
+	local info="`cat ${info_log}.color 2> /dev/null`"
+	local error="`cat ${error_log} 2> /dev/null`"
+	if [ ${running} == -1 ]; then
+		rm ${script_running} &> /dev/null
+		echo -e "status\t:\t\033[31mstopped\033[0m\ntime\t:\t${cur_date}"
+		if [ "${info}${error}" != "" ]; then
+			echo -e "log:\n${info}"
+			echo -e "\033[31m${error}\033[0m"
+		fi
+	else
+		echo -e "status\t:\t\033[32mrunning\033[0m\ntime\t:\t${cur_date}"
+		if [ "${info}" != "" ]; then
+			echo -e "log:\n${info}"
+		fi
+	fi
+	rm -f ${info_log}.color
+}
+
+reload() {
+
+	echo "Configuring..."
+	rm -f ${config_file}
+	rm -f ${authc_file}
+	local username=""
+	while [ "$username" == "" ] 
+	do
+		echo -n "Username: "
+		read username
+	done
+	local password=""
+	while [ "$password" == "" ] 
+	do
+		echo -n "Password: "
+		read password
+	done
+
+	local mac_addr=$(uci get network.wan.macaddr 2> /dev/null)
+	while [ "$mac_addr" == "" ] 
+	do
+		echo -n "Mac Addr: "
+		read mac_addr
+	done
+
+	local dhcp='0'
+	local version='3.8.2'
+	echo "#!/usr/bin/lua" > $config_file
+	echo "dhcp='$dhcp'" >> $config_file
+	echo "version='$version'" >> $config_file
+	echo "mac_addr='$mac_addr'" >> $config_file
+
+	echo "#!/usr/bin/lua" > $authc_file
+	echo "username='$username'" >> $authc_file
+	echo "password='$password'" >> $authc_file
+
+	if [ -e ${config_file} ] && [ -e ${authc_file} ]; then
+		echo "Configure success!"
+		return 0
+	else
+		echo "Configure failed!"
+		return -1
+	fi
 }
 
 restart() {
@@ -49,6 +139,18 @@ restart() {
 	start
 }
 
+enable() {
+	ln -sf /etc/init.d/supplicant /etc/rc.d/S95supplicant
+	ln -sf /etc/init.d/supplicant /etc/rc.d/K95supplicant
+
+	echo "0 6 * * * /etc/init.d/supplicant restart" >> /etc/crontabs/root
+	echo "0 7 * * * /etc/init.d/supplicant restart" >> /etc/crontabs/root
+}
+disable() {
+	rm /etc/rc.d/S95supplicant
+	rm /etc/rc.d/K95supplicant
+	sed -i '/supplicant/d' /etc/crontabs/root
+}
 case "$1" in  
     start)
         start  
@@ -65,5 +167,17 @@ case "$1" in
     status)
 		status
 		exit 0
-	;;  
+	;;
+	enable)
+		enable
+		exit 0
+	;;
+	disable)
+		disable
+		exit 0
+	;;
+	reload)
+		reload
+		exit 0
+	;;
 esac

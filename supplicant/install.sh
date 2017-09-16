@@ -8,23 +8,14 @@ install() {
 	if [ ! -e ${home} ]; then
 		mkdir ${home}
 	fi
-	cp ./* ${home}
-	echo "Configuring..."
-	sh ${home}/bin/configure.sh
-	if [ ! -e ${authc_file} ]; then
-		echo "Username or password error！Configure failed, Install canceled."
-		rm -r ${home}
-		return -1
-	fi
-	echo "Configure success!"
-	
-	mv ${home}/install.sh ${home}/install.sh.lock
+	cp -r ./ ${home}
+
+	rm -f ${home}/install.sh
 	cp ${home}/init.d/supplicant /etc/init.d/
 	chmod +x /etc/init.d/supplicant
-	ln -sf /etc/init.d/supplicant /etc/rc.d/S95supplicant
-	ln -sf /etc/init.d/supplicant /etc/rc.d/K95supplicant
-	echo "0 7 * * * /etc/init.d/supplicant restart" >> /etc/crontabs/root
-	
+
+	/etc/init.d/supplicant enable
+	/etc/init.d/supplicant reload
 	echo "Install success!"
 	return 0
 }
