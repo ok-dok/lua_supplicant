@@ -1,4 +1,4 @@
-# OpenWrt版小蝴蝶拨号认证软件
+# OpenWrt版小蝴蝶拨号认证插件
 
 ## 说明
 
@@ -129,3 +129,8 @@ Email: shawn_hou@163.com
 感谢 [xingrz](https://github.com/xingrz/swiftz-protocal "xingrz/swiftz-protocal") 提供的协议。
 感谢 [HinsYang](https://github.com/HinsYang "HinsYang's GitHub") 提交的bug。
 感谢各位帮助测试的童鞋！
+
+## 打赏赞助
+如果你不嫌弃的话，可以给我打赏哟！一块不嫌少，一百块不嫌多，赚点打赏费，更新维护才更有动力嘛！支持微信和支付宝！
+![支付宝](https://github.com/shawn-hou/lua_supplicant/raw/master/img/alipay.png)
+![微信](https://github.com/shawn-hou/lua_supplicant/raw/master/img/wechatpay.png)
