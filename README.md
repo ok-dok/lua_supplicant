@@ -116,3 +116,16 @@ Available commands:
 - status: 查看状态信息，这个使用的最多的，拨号失败了来这里查看状态日志，找找原因！
 
 那么开始上网吧！
+
+## 彩蛋
+如果你安装本客户端后却不能够成功拨号上网，请查看状态日志，找一下原因，如果是配置信息不正确导致的，可以直接到程序目录修改配置文件的哦！程序安装目录在/usr/share/supplicant，bin目录是主程序及配置文件所在，authc.lua存储了你的用户名和密码，conf.lua存储了一些配置信息，包括Mac地址，版本号，dhcp配置等，如果你发现这些信息有可能是不正确的，那么你可以直接修改这些信息。
+如果是ip地址不正确（一般不会出现），ip地址不包含在配置文件中，是程序运行中自动获取的，因此你应该去修改Wan口网卡的ip地址。
+
+如果安装不成功，提示缺少md5.lua，在本项目目录，你可以发现一个luamd5.tar.gz的压缩包，这是从我自己极路由1s上提取出来的，你可以尝试一下将其上传到路由器，解压到/usr/lib/lua目录下，再次执行安装，如果依然不能成功，提示md5不能正确识别或不能加载，那可能是这个md5不适合你的系统，请去百度下载安装符合你系统的md5模块，或者自行编译？
+## Bug Report
+Email: shawn_hou@163.com
+
+## 特别感谢
+感谢 [xingrz](https://github.com/xingrz/swiftz-protocal "xingrz/swiftz-protocal") 提供的协议。
+感谢 [HinsYang](https://github.com/HinsYang "HinsYang's GitHub") 提交的bug。
+感谢各位帮助测试的童鞋！
