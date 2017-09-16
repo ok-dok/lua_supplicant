@@ -1,2 +1,1 @@
-# lua_supplicant
-OpenWrt版小蝴蝶拨号认证软件
+# OpenWrt版小蝴蝶拨号认证软件
