@@ -22,6 +22,17 @@ java版本，解决了可以换电脑拨号、电脑开WiFi、Windows/Linux/MacO
 
 好了，经过几个星期的研究学习，终于实现了lua的小蝴蝶拨号客户端，有了这个客户端，妈妈再也不用担心我的学习！（呸呸呸，这跟学习有什么关系）
 
+## 更新说明
+
+-------- 2017-9-23 --------
+
+1. 增加log指令，可通过`/etc/init.d/supplicant log`来查看拨号日志
+
+2. 优化日志记录逻辑
+
+3. 增加自动启动拨号，可通过`/etc/init.d/supplicant enable/disable`来启用自动拨号或关闭
+
+4. 状态信息修改为显示程序运行情况和拨号情况
 
 ## 支持院校
 
@@ -106,7 +117,7 @@ sh install.sh
 4.　输入完成后终于提示 Install Success!　那么恭喜你了！接下来就是最鸡冻人心的时刻了：
 
 ```
-root@Hiwifi:~# /etc/init.d/supplicant --help
+root@Hiwifi:~# /etc/init.d/supplicant
 Syntax: /etc/init.d/supplicant [command]
 
 Available commands:
@@ -117,15 +128,17 @@ Available commands:
         enable  Enable service autostart
         disable Disable service autostart
         status  Display the service's status
+        log 	Show supplicant's log
 ```
-看到了吧？　执行 /etc/init.d/supplicant --help 就可以看到支持的命令咯！翻译一下：
-- start: 启动拨号上网
-- stop: 停止拨号上网（这不是有病嘛？我拿来不就是上网的，干嘛要停止？）
-- restart: 重启拨号
-- reload: 重新加载配置文件，会重新让你输入用户名、密码，当然还有可能让你输入Mac地址
-- enable: 允许小蝴蝶自动启动
-- disable: 不允许小蝴蝶自动启动
-- status: 查看状态信息，这个使用的最多的，拨号失败了来这里查看状态日志，找找原因！
+看到了吧？　执行 /etc/init.d/supplicant 就可以看到支持的命令咯！翻译一下：
+-   start:	启动拨号上网
+-    stop:	停止拨号上网（这不是有病嘛？我拿来不就是上网的，干嘛要停止？）
+- restart:	重启拨号
+-  reload:	重新加载配置文件，会重新让你输入用户名、密码，当然还有可能让你输入Mac地址
+-  enable:	允许小蝴蝶自动启动
+- disable:	不允许小蝴蝶自动启动
+-  status:	查看程序拨号状态信息
+-     log:	查看拨号日志, 拨号失败了来这里查看状态日志，找找原因！
 
 那么开始上网吧！
 
