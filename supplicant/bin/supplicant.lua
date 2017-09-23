@@ -68,17 +68,23 @@ function sleep(n)
 end
 
 function log.info(msg)
-	log.msg(" [info] "..msg);
+	log.msg(" [ info] "..msg);
 end
 
 function log.error(msg)
 	log.msg(" [error] "..msg);
 end
 
+function log.printStatus(msg)
+	local file = io.open(status_file, "w")
+	file:write(msg)
+	file:close()
+end
+
 function log.msg(msg)
-	local log_file = io.open(log_file, "a")
-	log_file:write(os.date("%m/%d %X",os.time())..msg.."\n")
-	log_file:close()
+	local logfile = io.open(log_file, "a")
+	logfile:write(os.date("%m/%d %X",os.time())..msg.."\n")
+	logfile:close()
 end
 
 function encrypt(buffer)
@@ -620,13 +626,76 @@ function check_md5(packet)
 	return table.concat(md5_packet) == table.concat(recv_md5)
 end
 
+function connect()
+	net_status = 0;
+	index = 0x01000000
+	login_packet = generate_login(mac_addr, ip, username, password, dhcp, service, version)
+	session = login(login_packet)
+	if(session) then
+		retry_cnt = 0
+		log.printStatus("online")
+		log.info("Connecting the internet success！")
+		breathe(mac_addr, ip, session, index)
+		if(net_status ~= 1) then
+			logout(mac_addr, ip, session, index)
+		end
+	end
+end
+
+function search()
+	udp:connect("1.1.1.8", 3850)
+	host_ip = search_server_ip(mac_addr, ip)
+	if(string.isNilOrEmpty(host_ip)) then
+		log.error("Failed to search for server host ip.")
+		return false
+	end
+
+	log.info("Server IP: "..host_ip)
+	
+	--udp:setpeername(host_ip, port)
+	udp:connect(host_ip, port)
+	service = search_service(mac_addr)
+	if(string.isNilOrEmpty(service)) then
+		log.error("Failed to search internet service.")
+		return false
+	end
+
+	log.info("Service: "..service)
+	return true
+end
+
+function init()
+	--log.info("Loading configuration files.")
+	dofile(config_file)
+	dofile(authc_file)
+	pcall(dofile, config_file)
+	pcall(dofile, authc_file)
+	port = 3848
+
+	udp = nixio.socket("inet","dgram")
+	udp:setopt("socket","reuseaddr",1)
+	udp:setopt("socket","rcvtimeo",10)
+	
+	if(string.isNilOrEmpty(ip)) then
+		udp:connect("1.1.1.8", 3850)
+		ip = udp:getsockname()
+	end
+	
+	os.execute("echo -n > "..log_file)
+	log.info("MAC Addr: "..mac_addr)
+	log.info("Local IP: "..ip)
+	log.info("Username: "..username)
+	log.info("Password: "..password)
+	
+end
+
 function run()
 	retry_cnt = 0
-	local flag = init()
+	local flag = search()
 	while(flag) do
 		connect()
 		if(net_status == -3) then
-			log.error("Authentication failure： The authentication information is incorrect, or not in time period.")
+			log.error("Authentication failure： The authentication information is incorrect, or not in internet time period.")
 			flag = false;
 		elseif(net_status == -2 or net_status == -1) then
 			retry_cnt = retry_cnt + 1
@@ -645,80 +714,35 @@ function run()
 	udp:close();
 end
 
-function connect()
-	net_status = 0;
-	index = 0x01000000
-	login_packet = generate_login(mac_addr, ip, username, password, dhcp, service, version)
-	session = login(login_packet)
-	if(session) then
-		retry_cnt = 0
-		log.info("Connecting the internet success！")
-		breathe(mac_addr, ip, session, index)
-		if(net_status ~= 1) then
-			logout(mac_addr, ip, session, index)
-		end
-	end
-end
-
-function login_test()
-	init()
-	login_packet = generate_login(mac_addr, ip, username, password, dhcp, service, version)
-	local cnt = 3
-	while(cnt > 0) do
-		session = login(login_packet)
-		if(session) then break end
-		cnt = cnt - 1
-	end
-	
-	if(not session) then
-		os.execute("rm "..authc_file)
-	end
-end
-
-function init()
-	dofile(config_file)
-	dofile(authc_file)
-	pcall(dofile, config_file)
-	pcall(dofile, authc_file)
-	retry_cnt = 0;
-	port = 3848
-
-	udp = nixio.socket("inet","dgram")
-	udp:setopt("socket","reuseaddr",1)
-	udp:setopt("socket","rcvtimeo",10)
-	udp:connect("1.1.1.8", 3850)
-	ip = udp:getsockname()
-
-	os.execute("echo -n > "..log_file)
-	log.info("MAC Addr: "..mac_addr)
-	log.info("Local IP: "..ip)
-	log.info("Username: "..username)
-	log.info("Password: "..password)
-
-	host_ip = search_server_ip(mac_addr, ip)
-	if(string.isNilOrEmpty(host_ip)) then
-		log.error("Failed to search for server host ip.")
-		return false
-	end
-
-	log.info("Server IP: "..host_ip)
-	--udp:setpeername(host_ip, port)
-	udp:connect(host_ip, port)
-	service = search_service(mac_addr)
-	if(string.isNilOrEmpty(service)) then
-		log.error("Failed to search internet service.")
-		return false
-	end
-
-	log.info("Service: "..service)
-	return true
-end
-
 function main()
-	if(string.isNilOrEmpty(arg[1])) then
-		run()
-	elseif(arg[1] == "-t") then
-		login_test()
+	local connect_cnt = 0;
+	init()
+	local flag = autostart
+	while(flag) do
+		--记录连接次数
+		connect_cnt = connect_cnt + 1
+		log.printStatus("connecting")
+		if(search()) then
+			connect()
+			log.printStatus("offline")
+			if(net_status == -3) then
+				--认证失败，不再自动连接
+				log.error("Authentication failure： The authentication information is incorrect, or not in internet time period.")
+				flag = false;
+			elseif(net_status == -2 or net_status == -1) then
+				--连接超时，3秒后重新连接
+				log.error("Authentication failure： connect timeout, try reconnecting...")
+				sleep(3)
+			else
+				--保持连接失败，3秒后重新连接
+				log.error("Hold on connecting failed, try reconnecting...")
+				sleep(3)
+			end
+		else
+			--搜索服务失败，60秒后再次搜索
+			log.printStatus("offline")
+			sleep(60)
+		end
 	end
 end
 
@@ -726,5 +750,6 @@ home = "/usr/share/supplicant"
 config_file = home.."/bin/conf.lua"
 authc_file = home.."/bin/authc.lua"
 log_file = home.."/info.log"
+status_file = home.."/supplicant.status"
 net_status = 0
 main()
