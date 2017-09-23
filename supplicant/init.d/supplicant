@@ -14,10 +14,9 @@ connect_status="${home}/supplicant.status"
 info_log="${home}/info.log"
 error_log="${home}/error.log"
 
-EXTRA_COMMANDS="status log help"
+EXTRA_COMMANDS="status log"
 EXTRA_HELP="	status	Display the service's status
-	log 	Show supplicant's log
-	help	Show available commands"
+	log 	Show supplicant's log"
 
 start(){
 	echo -n "Starting..."
@@ -211,19 +210,6 @@ case "$1" in
 	;;
 	log)
 		log
-		exit 0
-	;;
-	help)
-		echo -e "
-Available commands:
-\tstart\tStart the service
-\tstop\tStop the service
-\trestart\tRestart the service
-\treload\tReload configuration files (or restart if that fails)
-\tenable\tEnable service autostart
-\tdisable\tDisable service autostart
-\tstatus\tDisplay the service's status
-\tlog\tShow supplicant's log"
 		exit 0
 	;;
 esac
