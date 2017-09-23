@@ -10,14 +10,17 @@ config_file="${home}/bin/conf.lua"
 authc_file="${home}/bin/authc.lua"
 prog="${home}/bin/supplicant.lua"
 script_running="${home}/supplicant.pid"
+connect_status="${home}/supplicant.status"
 info_log="${home}/info.log"
 error_log="${home}/error.log"
 
-EXTRA_COMMANDS="status"
-EXTRA_HELP="        status	Display the service's status"
+EXTRA_COMMANDS="status log help"
+EXTRA_HELP="	status	Display the service's status
+	log 	Show supplicant's log
+	help	Show available commands"
 
 start(){
-	echo -n "starting..."
+	echo -n "Starting..."
 	lua ${prog} 1> /dev/null 2> ${home}/error.log & pid=$!
 	echo ${pid} > ${script_running}
 
@@ -27,13 +30,13 @@ start(){
 	if [ "${pid}" != "" ]; then
 		kill -0 ${pid} &> /dev/null
 		if [ "$?" == "0" ]; then
-			echo "ok."
+			echo -e "[ \033[32mOK\033[0m ]"
 			echo "Use command '/etc/init.d/supplicant status' to see status."
 			return 0
 		fi
 	fi
-	echo "failed!"	
-	echo "${info}\n${error}"
+	echo -e "[ \033[31mFailed\033[0m ]"	
+	echo -e "${info}\n${error}"
 	return 0
 }
 
@@ -42,13 +45,13 @@ stop() {
 		return 0
 	fi
 	
-	echo -n "stopping..."
-	local spid=`cat ${script_running}`
+	echo -n "Stopping..."
+	local spid=`cat ${script_running} 2> /dev/null`
 	if [ "${spid}" != "" ]; then
 		kill -9 ${spid} &> /dev/null
 		rm ${script_running}
 	fi
-	echo "ok"
+	echo -e "[ \033[32mOK\033[0m ]"
 	return 0
 }
 
@@ -64,32 +67,49 @@ status() {
 			fi
 		fi
 	fi
-	if [ ! -e ${info_log} ]; then
-		echo -n > ${info_log}
+	local status=`cat ${connect_status} 2> /dev/null`
+	if [ "${status}" == "" ]; then
+		status="offline"
 	fi
-	cp ${info_log} ${info_log}.color
-	sed -i 's/\[error\]/\\033[31m[error]\\033[0m/' ${info_log}.color
-	sed -i 's/\[info\]/\\033[32m[info]\\033[0m/' ${info_log}.color
-	local info="`cat ${info_log}.color 2> /dev/null`"
+	if [ "${status}" == "offline" ]; then
+		status="\033[31m${status}\033[0m"
+	else
+		status="\033[32m${status}\033[0m"
+	fi
+	
 	local error="`cat ${error_log} 2> /dev/null`"
+	local program=""
 	if [ ${running} == -1 ]; then
 		rm ${script_running} &> /dev/null
-		echo -e "status\t:\t\033[31mstopped\033[0m\ntime\t:\t${cur_date}"
-		if [ "${info}${error}" != "" ]; then
-			echo -e "log:\n${info}"
-			echo -e "\033[31m${error}\033[0m"
-		fi
+		program="\033[31mstopped\033[0m"
 	else
-		echo -e "status\t:\t\033[32mrunning\033[0m\ntime\t:\t${cur_date}"
-		if [ "${info}" != "" ]; then
-			echo -e "log:\n${info}"
-		fi
+		program="\033[32mrunning\033[0m"		
 	fi
-	rm -f ${info_log}.color
+	echo -e "program\t:\t${program}\nstatus\t:\t${status}\ntime\t:\t${cur_date}"
+	if [ "${error}" != "" ]; then
+		echo -e "\n\033[31m${error}\033[0m"
+	fi
+	
+}
+
+log() {
+	if [ -e ${info_log} ]; then
+		cp ${info_log} ${info_log}.color
+		sed -i 's/\[error\]/\\033[31m[error]\\033[0m/' ${info_log}.color
+		sed -i 's/\[ info\]/\\033[32m[ info]\\033[0m/' ${info_log}.color
+		local info="`cat ${info_log}.color 2> /dev/null`"
+		if [ "${info}" != "" ]; then
+			echo -e "${info}"
+		fi
+		rm -f ${info_log}.color
+	fi
 }
 
 reload() {
-
+	
+	if [ -e ${script_running} ]; then
+		stop
+	fi
 	echo "Configuring..."
 	rm -f ${config_file}
 	rm -f ${authc_file}
@@ -123,9 +143,10 @@ reload() {
 	echo "#!/usr/bin/lua" > $authc_file
 	echo "username='$username'" >> $authc_file
 	echo "password='$password'" >> $authc_file
-
+	enable
 	if [ -e ${config_file} ] && [ -e ${authc_file} ]; then
 		echo "Configure success!"
+		start
 		return 0
 	else
 		echo "Configure failed!"
@@ -142,11 +163,19 @@ restart() {
 enable() {
 	ln -sf /etc/init.d/supplicant /etc/rc.d/S95supplicant
 	ln -sf /etc/init.d/supplicant /etc/rc.d/K95supplicant
-
+	local autostart=`cat ${config_file} | grep autostart | awk -F '=' '{print $2}' | sed s/[[:space:]]//g`
+	if [ "$autostart" != "" ]; then
+		sed -i -e '/autostart/d' $config_file
+	fi
+	echo "autostart=true" >> $config_file
 	echo "0 6 * * * /etc/init.d/supplicant restart" >> /etc/crontabs/root
 	echo "0 7 * * * /etc/init.d/supplicant restart" >> /etc/crontabs/root
 }
 disable() {
+	if [ "$autostart" != "" ]; then
+		sed -i -e '/autostart/d' $config_file
+	fi
+	echo "autostart=false" >> $config_file
 	rm /etc/rc.d/S95supplicant
 	rm /etc/rc.d/K95supplicant
 	sed -i '/supplicant/d' /etc/crontabs/root
@@ -178,6 +207,23 @@ case "$1" in
 	;;
 	reload)
 		reload
+		exit 0
+	;;
+	log)
+		log
+		exit 0
+	;;
+	help)
+		echo -e "
+Available commands:
+\tstart\tStart the service
+\tstop\tStop the service
+\trestart\tRestart the service
+\treload\tReload configuration files (or restart if that fails)
+\tenable\tEnable service autostart
+\tdisable\tDisable service autostart
+\tstatus\tDisplay the service's status
+\tlog\tShow supplicant's log"
 		exit 0
 	;;
 esac
