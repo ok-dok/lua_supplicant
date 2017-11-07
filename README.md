@@ -150,7 +150,7 @@ Available commands:
 那么开始上网吧！
 
 ## 配置说明
-关于conf.lua的配置说明如下（当且仅当程序拨号获取不到配置或者获取错误时可修改）：
+关于conf.lua的配置说明如下（当且仅当程序拨号获取不到配置或者获取错误时可修改，命令 /etc/init.d/supplicant reload 会更新此配置）：
 
 ```
 dhcp='0'                                #是否支持dhcp，0--不支持，1--支持，默认为0，可无需改动
@@ -159,6 +159,11 @@ service='int'     			#internet服务（自动获取）,一般是int/internet
 host_ip='219.218.154.250'               #服务器ip地址（自动获取）
 ip='180.201.54.232'			#本地ip地址（自动获取）
 mac_addr='00:90:F5:F7:39:B0'		#网卡的mac地址（自动获取）
+```
+
+authc.lua配置说明（此文件是在安装时根据输入的用户名和密码生成，可无需改动，如果要重新配置，请使用命令 /etc/init.d/supplicant reload ）：
+
+```
 username='201358501113'                 #用户名
 password='8888'				#密码
 ```
