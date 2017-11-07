@@ -67,6 +67,10 @@ function sleep(n)
    os.execute("sleep " .. n)
 end
 
+function log.warn(msg)
+	log.msg(" [ warn] "..msg)
+end
+
 function log.info(msg)
 	log.msg(" [ info] "..msg);
 end
@@ -644,7 +648,9 @@ end
 
 function search()
 	udp:connect("1.1.1.8", 3850)
-	host_ip = search_server_ip(mac_addr, ip)
+	if(string.isNilOrEmpty(host_ip)) then
+		host_ip = search_server_ip(mac_addr, ip)
+	end
 	if(string.isNilOrEmpty(host_ip)) then
 		log.error("Failed to search for server host ip.")
 		return false
@@ -652,12 +658,15 @@ function search()
 
 	log.info("Server IP: "..host_ip)
 	
-	--udp:setpeername(host_ip, port)
-	udp:connect(host_ip, port)
-	service = search_service(mac_addr)
 	if(string.isNilOrEmpty(service)) then
-		log.error("Failed to search internet service.")
-		return false
+		--udp:setpeername(host_ip, port)
+		udp:connect(host_ip, port)
+		service = search_service(mac_addr)
+	end
+	if(string.isNilOrEmpty(service)) then
+		log.warn("Failed to search internet service. Using the default service 'int', if it's not right, please configure service in 'bin/conf.lua'")
+		service = "int"
+		--return false
 	end
 
 	log.info("Service: "..service)
@@ -687,31 +696,6 @@ function init()
 	log.info("Username: "..username)
 	log.info("Password: "..password)
 	
-end
-
-function run()
-	retry_cnt = 0
-	local flag = search()
-	while(flag) do
-		connect()
-		if(net_status == -3) then
-			log.error("Authentication failure： The authentication information is incorrect, or not in internet time period.")
-			flag = false;
-		elseif(net_status == -2 or net_status == -1) then
-			retry_cnt = retry_cnt + 1
-			if(retry_cnt > 5) then
-				log.error("Authentication failure： connect timeout, please try again later！")
-				flag = false;
-			end
-		else
-			retry_cnt = retry_cnt + 1
-			if(retry_cnt > 5) then
-				log.error("Hold on connecting failed, please try again later！")
-				flag = false;
-			end
-		end
-	end
-	udp:close();
 end
 
 function main()

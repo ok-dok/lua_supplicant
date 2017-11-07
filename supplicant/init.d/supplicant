@@ -96,6 +96,7 @@ log() {
 		cp ${info_log} ${info_log}.color
 		sed -i 's/\[error\]/\\033[31m[error]\\033[0m/' ${info_log}.color
 		sed -i 's/\[ info\]/\\033[32m[ info]\\033[0m/' ${info_log}.color
+		sed -i 's/\[ warn\]/\\033[33m[ warn]\\033[0m/' ${info_log}.color
 		local info="`cat ${info_log}.color 2> /dev/null`"
 		if [ "${info}" != "" ]; then
 			echo -e "${info}"
