@@ -14,9 +14,10 @@ install() {
 	cp ${home}/init.d/supplicant /etc/init.d/
 	chmod +x /etc/init.d/supplicant
 
+	echo "Install success!"
+	
 	/etc/init.d/supplicant reload
 	
-	echo "Install success!"
 	return 0
 }
 
