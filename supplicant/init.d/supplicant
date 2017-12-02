@@ -19,6 +19,10 @@ EXTRA_HELP="	status	Display the service's status
 	log 	Show supplicant's log"
 
 start(){
+	if [ -e ${script_running} ]; then
+		echo -e "The supplicant is already running!"
+		return 0
+	fi
 	echo -n "Starting..."
 	lua ${prog} 1> /dev/null 2> ${home}/error.log & pid=$!
 	echo ${pid} > ${script_running}
