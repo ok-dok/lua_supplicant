@@ -43,9 +43,7 @@
 
 4. 广州城建学院
 
-### 待测试
-
-1. 辽东学院
+5. 华南农业大学珠江学院
 
 ## 运行环境
 
@@ -66,7 +64,7 @@
 ssh -p 1022 root@192.168.1.1
 ```
 
-2. 将软件包supplicant.tar.gz上传到路由器/root目录。命令如下：
+2. 将源码中的supplicant目录打包supplicant.tar.gz并上传到路由器/root目录。命令如下：
 
 ```
 scp -P 1022 supplicant.tar.gz root@192.168.1.1:/root
@@ -74,9 +72,10 @@ scp -P 1022 supplicant.tar.gz root@192.168.1.1:/root
 
 -P 后面是路由器ssh端口号,一般是1022或者22, root@后面是你的路由器ip地址。如果你的路由器地址和端口和上面命令不同，请修改成你自己的。
 
-3. ssh连接到路由器,执行：
+3. ssh连接到路由器，解压，执行：
 
 ```
+tar -zxvf supplicant.tar.gz
 cd supplicant
 ls
 ```
@@ -163,6 +162,7 @@ password='8888'				#密码
 如果是ip地址不正确（一般不会出现），ip地址不包含在配置文件中，是程序运行中自动获取的，因此你应该去修改Wan口网卡的ip地址。
 
 如果安装不成功，提示缺少md5.lua，在本项目目录，你可以发现一个luamd5.tar.gz的压缩包，这是从我自己极路由1s上提取出来的，你可以尝试一下将其上传到路由器，解压到/usr/lib/lua目录下，再次执行安装，如果依然不能成功，提示md5不能正确识别或不能加载，那可能是这个md5不适合你的系统，请去百度下载安装符合你系统的md5模块，或者自行编译？
+
 ## Bug Report
 Email: shawn_hou@163.com
 
@@ -171,8 +171,8 @@ Email: shawn_hou@163.com
 感谢 [HinsYang](https://github.com/HinsYang "HinsYang's GitHub") 提交的bug。
 感谢各位帮助测试的童鞋！
 
-## 打赏赞助
-如果你不嫌弃的话，可以给我打赏哟！一块不嫌少，一百块不嫌多，赚点打赏费，更新维护才更有动力嘛！支持微信和支付宝！
+## 特别支持
+如果你成功使用本软件客户端拨号了，那么首先要恭喜你！记得回来点击页面右上角的 `star` 按钮，给我点亮一颗小星星吧！另外呢，如果你不嫌弃的话，可以给我打赏哟！一块不嫌少，一百块不嫌多，赚点打赏费，更新维护才更有动力嘛！支持微信和支付宝！
 
 ![支付宝](https://github.com/shawn-hou/lua_supplicant/raw/master/img/alipay.png)
 ![微信](https://github.com/shawn-hou/lua_supplicant/raw/master/img/wechatpay.png)
