@@ -657,10 +657,9 @@ function search()
 	end
 
 	log.info("Server IP: "..host_ip)
-	
+	udp:connect(host_ip, port)
 	if(string.isNilOrEmpty(service)) then
 		--udp:setpeername(host_ip, port)
-		udp:connect(host_ip, port)
 		service = search_service(mac_addr)
 	end
 	if(string.isNilOrEmpty(service)) then
