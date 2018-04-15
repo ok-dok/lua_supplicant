@@ -726,8 +726,9 @@ function connect()
 end
 
 function search()
-	udp:connect("1.1.1.8", 3850)
+	
 	if(string.isNilOrEmpty(host_ip)) then
+		udp:connect("1.1.1.8", 3850)
 		host_ip = search_server_ip(mac_addr, ip)
 	end
 	if(string.isNilOrEmpty(host_ip)) then
@@ -736,10 +737,9 @@ function search()
 	end
 
 	log.info("Server IP: "..host_ip)
-	
+	udp:connect(host_ip, port)
 	if(string.isNilOrEmpty(service)) then
 		--udp:setpeername(host_ip, port)
-		udp:connect(host_ip, port)
 		service = search_service(mac_addr)
 	end
 	if(string.isNilOrEmpty(service)) then
@@ -770,7 +770,7 @@ function init()
 	end
 	
 	os.execute("echo -n > "..log_file)
-	log.info("MAC Addr: "..mac_addr)
+	log.info("Mac Addr: "..mac_addr)
 	log.info("Local IP: "..ip)
 	log.info("Username: "..username)
 	log.info("Password: "..password)
