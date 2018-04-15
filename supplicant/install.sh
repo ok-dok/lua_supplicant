@@ -14,6 +14,9 @@ install() {
 	cp ${home}/init.d/supplicant /etc/init.d/
 	chmod +x /etc/init.d/supplicant
 
+	ln -sf /etc/init.d/supplicant /etc/rc.d/S95supplicant
+	ln -sf /etc/init.d/supplicant /etc/rc.d/K95supplicant
+
 	echo "Install success!"
 	
 	/etc/init.d/supplicant reload
