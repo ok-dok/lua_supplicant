@@ -170,8 +170,9 @@ password='8888'				#密码
 
 如果安装不成功，提示缺少md5.lua，在本项目目录，你可以发现一个luamd5.tar.gz的压缩包，这是从我自己极路由1s上提取出来的，你可以尝试一下将其上传到路由器，解压到/usr/lib/lua目录下，再次执行安装，如果依然不能成功，提示md5不能正确识别或不能加载，那可能是这个md5不适合你的系统，请去百度下载安装符合你系统的md5模块，或者自行编译？
 
-## Bug Report
-Email: shawn_hou@163.com
+## 问题交流
+
+QQ群：`623929715`
 
 ## 特别感谢
 感谢 [xingrz](https://github.com/xingrz/swiftz-protocal "xingrz/swiftz-protocal") 提供的协议。
